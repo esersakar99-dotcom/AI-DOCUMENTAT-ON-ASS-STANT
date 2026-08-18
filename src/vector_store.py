@@ -18,8 +18,8 @@ class VectorStore:
 
     def replace_source(self, source: str, chunks: list[Chunk]) -> None:
         self.collection.delete(where={"source": source})
-        # Büyük PDF'lerde tüm embedding'leri tek seferde belleğe alma.
-        # 32 parça, 8 GB ve altı VRAM'e sahip sistemlerde güvenli bir varsayılandır.
+        # Avoid keeping every embedding in memory for large PDFs.
+        # A 32-chunk batch is a conservative default for systems with 8 GB VRAM or less.
         batch_size = 32
         for start in range(0, len(chunks), batch_size):
             batch = chunks[start:start + batch_size]

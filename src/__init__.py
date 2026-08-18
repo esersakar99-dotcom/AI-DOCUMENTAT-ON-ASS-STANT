@@ -1,1 +1,1 @@
-"""Yerel Ollama tabanlı RAG bileşenleri."""
+"""Local Ollama-powered RAG components."""

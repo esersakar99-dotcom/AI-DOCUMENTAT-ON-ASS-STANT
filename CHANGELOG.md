@@ -1,9 +1,16 @@
-# Değişiklik günlüğü
+# Changelog
 
-## 1.0.0 - 2026-08-19
+All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
-- Ollama ve Llama tabanlı yerel RAG hattı eklendi.
-- PDF, TXT ve Markdown belge desteği eklendi.
-- Sayfa kaynaklı cevaplar ve kalıcı ChromaDB indeksi eklendi.
-- Profesyonel Streamlit arayüzü ve 1 GB yükleme desteği eklendi.
-- 8 GB VRAM için 4096 bağlam, 128 token batch ve 32 parçalık embedding batch sınırları eklendi.
+## [1.0.0] - 2026-08-19
+
+### Added
+
+- Local Ollama and Llama RAG pipeline
+- PDF, TXT, and Markdown ingestion
+- Page-aware chunking and cited answers
+- Persistent ChromaDB vector index
+- Premium Streamlit interface
+- 1 GB per-file upload support
+- VRAM-conscious context, generation, and embedding batch limits
+- Core chunking tests

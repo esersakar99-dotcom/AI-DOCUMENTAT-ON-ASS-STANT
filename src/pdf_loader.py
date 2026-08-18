@@ -20,7 +20,7 @@ def load_document(file_path: Path) -> list[Page]:
     file_path = Path(file_path)
     suffix = file_path.suffix.lower()
     if suffix not in SUPPORTED_EXTENSIONS:
-        raise ValueError(f"Desteklenmeyen dosya türü: {suffix}")
+        raise ValueError(f"Unsupported file type: {suffix}")
     if suffix == ".pdf":
         reader = PdfReader(file_path)
         pages = [Page(file_path.name, number, (page.extract_text() or "").strip())

@@ -10,7 +10,7 @@ class OllamaEmbedder:
     def embed(self, texts: list[str]) -> list[list[float]]:
         if not texts:
             return []
-        # Kısa keep-alive, embedding modelinin VRAM'i gereksiz yere tutmasını önler.
+        # A short keep-alive prevents the embedding model from holding VRAM unnecessarily.
         return self.client.embed(model=self.model, input=texts, keep_alive="2m")["embeddings"]
 
     def __call__(self, input: list[str]) -> list[list[float]]:

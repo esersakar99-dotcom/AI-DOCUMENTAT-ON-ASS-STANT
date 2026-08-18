@@ -15,7 +15,7 @@ class Chunk:
 
 def chunk_pages(pages: list[Page], chunk_size: int = 1200, overlap: int = 200) -> list[Chunk]:
     if chunk_size <= 0 or overlap < 0 or overlap >= chunk_size:
-        raise ValueError("chunk_size pozitif ve overlap chunk_size'dan küçük olmalı")
+        raise ValueError("chunk_size must be positive and overlap must be smaller than chunk_size")
     chunks: list[Chunk] = []
     for page in pages:
         content = " ".join(page.text.split())

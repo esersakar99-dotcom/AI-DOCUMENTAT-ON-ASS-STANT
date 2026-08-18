@@ -1,48 +1,89 @@
-# Yerel AI Doküman Asistanı (RAG)
+# Local Document RAG Assistant
 
-PDF, TXT ve Markdown belgelerini sayfa bilgisi korunarak parçalayan, Ollama embedding modeliyle ChromaDB'ye kaydeden ve Llama ile kaynaklı Türkçe yanıt üreten yerel RAG uygulaması. Dosya başına 1 GB'a kadar ve 12 sayfadan büyük PDF'ler desteklenir; sabit sayfa sınırı yoktur.
+A privacy-first document assistant that runs entirely on your machine. It indexes PDF, TXT, and Markdown files with Ollama embeddings, stores vectors in ChromaDB, and produces page-cited answers with a local Llama model.
 
-## RAG akışı
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-local-111111)
+![Version](https://img.shields.io/badge/version-1.0.0-31835e)
 
-1. Belgeler sayfa bazında okunur.
-2. Metinler 1200 karakterlik, 200 karakter örtüşmeli parçalara ayrılır.
-3. `nomic-embed-text` ile vektörler oluşturulup kalıcı ChromaDB indeksine yazılır.
-4. Soruya en yakın parçalar bulunur.
-5. `llama3.2:3b`, yalnızca bu bağlamı kullanarak sayfa kaynaklı cevap verir.
+## Features
 
-## Donanım ve VRAM
+- Fully local inference; documents are not sent to a cloud service
+- PDF, TXT, and Markdown ingestion with page metadata
+- Persistent ChromaDB vector index
+- Source citations in every answer
+- Turkish-first Streamlit interface
+- Up to 1 GB per uploaded file
+- Memory-conscious batch processing for large documents
+- Sensible defaults for GPUs with 8 GB VRAM
 
-Varsayılan `llama3.2:3b` modeli 8 GB VRAM'li cihazlar için seçilmiştir. Uygulama bağlamı 4096 token, üretim batch'i 128 ve embedding kayıtları 32 parça ile sınırlar. Modeller iki dakika kullanılmadığında Ollama tarafından VRAM'den çıkarılabilir. Daha küçük ekran kartlarında `llama3.2:1b`, daha güçlü kartlarda daha büyük bir Llama modeli arayüzden seçilebilir.
+## Architecture
 
-## Kurulum
+```text
+Document -> page-aware chunks -> Ollama embeddings -> ChromaDB
+                                                        |
+Question -> semantic retrieval -> relevant context -> Llama -> cited answer
+```
 
-Python 3.11 veya 3.12 önerilir. Önce Ollama kurulu ve çalışıyor olmalıdır.
+| Component | Responsibility |
+| --- | --- |
+| `app.py` | Streamlit interface and upload workflow |
+| `src/pdf_loader.py` | File discovery and page-aware text extraction |
+| `src/chunker.py` | Overlapping text chunking |
+| `src/embedder.py` | Ollama embedding client |
+| `src/vector_store.py` | Persistent indexing and similarity search |
+| `src/retriever.py` | Context assembly with source metadata |
+| `src/llm.py` | Grounded Llama response generation |
+| `src/rag.py` | End-to-end RAG orchestration |
+
+## Requirements
+
+- Python 3.11 or newer; Python 3.11/3.12 is recommended
+- [Ollama](https://ollama.com/) running locally
+- Approximately 4 GB of free disk space for the default models
+- A GPU with 8 GB VRAM is recommended, but CPU inference also works
+
+## Quick start
 
 ```powershell
 ollama pull llama3.2:3b
 ollama pull nomic-embed-text
+
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Ekrandan dosya yükleyip **Yüklenenleri indeksle** düğmesine basın. Alternatif olarak dosyaları `documents/` klasörüne koyup **documents/ klasörünü tara** düğmesini kullanın.
+Open [http://localhost:8501](http://localhost:8501), upload a document, select **Belgeleri hazırla**, and ask a question.
 
-## Proje yapısı
+You can also copy files into `documents/` and use **Klasörü yeniden tara**.
 
-- `app.py`: Streamlit arayüzü
-- `src/pdf_loader.py`: belge keşfi ve sayfa bazlı okuma
-- `src/chunker.py`: örtüşmeli metin parçalama
-- `src/embedder.py`: Ollama embedding istemcisi
-- `src/vector_store.py`: kalıcı ChromaDB indeks ve benzerlik araması
-- `src/llm.py`: Llama yanıt üretimi
-- `src/rag.py`: uçtan uca RAG orkestrasyonu
+## VRAM profile
 
-Taranmış görüntü PDF'lerinde metin katmanı yoksa OCR gerekir; bu sürüm OCR yapmaz. Aynı adlı belge tekrar indekslendiğinde eski parçaları yenileriyle değiştirilir.
+The default configuration targets GPUs with 8 GB VRAM:
 
-## Test
+- Chat model: `llama3.2:3b`
+- Context window: 4,096 tokens
+- Generation batch: 128
+- Embedding batch: 32 chunks
+- Model keep-alive: 2 minutes
+
+For smaller GPUs, select `llama3.2:1b` in the sidebar. Larger models can be selected on higher-memory systems.
+
+## Tests
 
 ```powershell
 python -m unittest discover -v
+python -m compileall -q app.py src tests
 ```
+
+## Limitations
+
+- Image-only PDFs require OCR, which is not included in this release.
+- A 1 GB upload limit does not guarantee that every 1 GB PDF can be processed within available system RAM.
+- Retrieval quality depends on the text layer and structure of the source document.
+
+## Versioning
+
+This project follows [Semantic Versioning](https://semver.org/). See [CHANGELOG.md](CHANGELOG.md) for release history.
