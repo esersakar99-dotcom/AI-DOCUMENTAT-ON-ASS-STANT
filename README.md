@@ -1,0 +1,2 @@
+# AI-DOCUMENTAT-ON-ASS-STANT
+RAG example project
