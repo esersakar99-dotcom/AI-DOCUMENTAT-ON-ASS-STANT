@@ -6,11 +6,11 @@ from src.pdf_loader import Page
 
 class ChunkerTests(unittest.TestCase):
     def test_preserves_page_metadata_for_large_document(self):
-        pages = [Page("rapor.pdf", page, (f"Sayfa {page} içeriği. " * 100))
+        pages = [Page("report.pdf", page, (f"Page {page} content. " * 100))
                  for page in range(1, 13)]
         chunks = chunk_pages(pages)
         self.assertEqual({chunk.page for chunk in chunks}, set(range(1, 13)))
-        self.assertTrue(all(chunk.source == "rapor.pdf" for chunk in chunks))
+        self.assertTrue(all(chunk.source == "report.pdf" for chunk in chunks))
 
     def test_rejects_invalid_overlap(self):
         with self.assertRaises(ValueError):

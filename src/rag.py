@@ -24,5 +24,5 @@ class RAGAssistant:
     def ask(self, question: str, top_k: int = 5) -> tuple[str, list[dict]]:
         context, sources = retrieve_context(self.store, question, top_k)
         if not context:
-            return "Henüz indekslenmiş bir doküman yok.", []
+            return "No documents have been indexed yet.", []
         return self.llm.answer(question, context), sources

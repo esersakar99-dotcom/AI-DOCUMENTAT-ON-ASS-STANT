@@ -4,7 +4,7 @@ A privacy-first document assistant that runs entirely on your machine. It indexe
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![Ollama](https://img.shields.io/badge/Ollama-local-111111)
-![Version](https://img.shields.io/badge/version-1.0.0-31835e)
+![Version](https://img.shields.io/badge/version-1.1.0-31835e)
 
 ## Features
 
@@ -12,7 +12,7 @@ A privacy-first document assistant that runs entirely on your machine. It indexe
 - PDF, TXT, and Markdown ingestion with page metadata
 - Persistent ChromaDB vector index
 - Source citations in every answer
-- Turkish-first Streamlit interface
+- English Streamlit interface and assistant responses
 - Up to 1 GB per uploaded file
 - Memory-conscious batch processing for large documents
 - Sensible defaults for GPUs with 8 GB VRAM
@@ -55,9 +55,9 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Open [http://localhost:8501](http://localhost:8501), upload a document, select **Belgeleri hazırla**, and ask a question.
+Open [http://localhost:8501](http://localhost:8501), upload a document, select **Prepare documents**, and ask a question.
 
-You can also copy files into `documents/` and use **Klasörü yeniden tara**.
+You can also copy files into `documents/` and use **Rescan folder**.
 
 ## VRAM profile
 

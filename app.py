@@ -5,7 +5,7 @@ from src.version import __version__
 
 DOCUMENTS_DIR, DATABASE_DIR = Path("documents"), Path("database")
 MAX_UPLOAD_BYTES = 1024 * 1024 * 1024  # 1 GB
-st.set_page_config(page_title="Arşiv — Doküman Asistanı", page_icon="◼", layout="wide")
+st.set_page_config(page_title="Archive — Document Assistant", page_icon="◼", layout="wide")
 st.markdown("""
 <style>
 :root{--ink:#f4efe7;--muted:#b8afa5;--paper:#171311;--card:#211c19;--line:#3a312c;--accent:#31835e}
@@ -37,17 +37,17 @@ html,body,[class*="css"]{font-family:Inter,"Segoe UI",sans-serif}.stApp{backgrou
 </style>""", unsafe_allow_html=True)
 
 with st.sidebar:
-    st.markdown('<div class="brand">ARŞİV</div>', unsafe_allow_html=True)
-    st.markdown("### Çalışma alanı")
-    st.caption("Belgelerinizi hazırlayın, ardından konuşmaya başlayın.")
+    st.markdown('<div class="brand">ARCHIVE</div>', unsafe_allow_html=True)
+    st.markdown("### Workspace")
+    st.caption("Prepare your documents, then start a conversation.")
     st.divider()
-    chat_model = st.text_input("Yanıt modeli", "llama3.2:3b")
-    embedding_model = st.text_input("Arama modeli", "nomic-embed-text")
-    ollama_host = st.text_input("Yerel servis", "http://localhost:11434")
-    top_k = st.slider("Arama derinliği", 2, 10, 5, help="Her soruda incelenecek ilgili parça sayısı.")
+    chat_model = st.text_input("Response model", "llama3.2:3b")
+    embedding_model = st.text_input("Embedding model", "nomic-embed-text")
+    ollama_host = st.text_input("Local service", "http://localhost:11434")
+    top_k = st.slider("Search depth", 2, 10, 5, help="Number of relevant text chunks reviewed for each question.")
     st.divider()
-    st.markdown('<div class="privacy"><span class="status-dot"></span>Yerel ve gizli<br><br>Belgeleriniz bu bilgisayardan dışarı gönderilmez.</div>', unsafe_allow_html=True)
-    st.caption(f"Sürüm {__version__}")
+    st.markdown('<div class="privacy"><span class="status-dot"></span>Local and private<br><br>Your documents never leave this computer.</div>', unsafe_allow_html=True)
+    st.caption(f"Version {__version__}")
 
 @st.cache_resource
 def get_assistant(chat, embedding, host):
@@ -56,97 +56,97 @@ def get_assistant(chat, embedding, host):
 try:
     assistant = get_assistant(chat_model, embedding_model, ollama_host)
 except Exception as exc:
-    st.error(f"Çalışma alanı açılamadı: {exc}")
+    st.error(f"The workspace could not be opened: {exc}")
     st.stop()
 
 if flash := st.session_state.pop("flash_message", None):
     kind, message = flash
     getattr(st, kind)(message)
 
-st.markdown("""<div class="hero"><div class="eyebrow">Yerel doküman asistanı</div>
-<h1>Belgelerinizle<br>konuşmanın sade yolu.</h1><p>Uzun raporları, araştırmaları ve notları tek bir yerde arayın.
-Yanıtları doğrudan belgenizden, sayfa kaynağıyla birlikte alın.</p></div>""", unsafe_allow_html=True)
+st.markdown("""<div class="hero"><div class="eyebrow">Local document assistant</div>
+<h1>A simpler way to<br>talk to your documents.</h1><p>Search long reports, research, and notes in one place.
+Get answers directly from your documents, complete with page citations.</p></div>""", unsafe_allow_html=True)
 
 document_count = len([p for p in DOCUMENTS_DIR.glob("*.*") if p.name != ".gitkeep"]) if DOCUMENTS_DIR.exists() else 0
-for column, label, value in zip(st.columns(3), ["Belgeler", "İndekslenen parçalar", "Sistem durumu"],
-                                [document_count, assistant.store.count, "Hazır" if assistant.store.count else "Belge bekliyor"]):
+for column, label, value in zip(st.columns(3), ["Documents", "Indexed chunks", "System status"],
+                                [document_count, assistant.store.count, "Ready" if assistant.store.count else "Waiting for documents"]):
     with column:
-        dot = '<span class="status-dot"></span>' if label == "Sistem durumu" else ""
-        size = "1.2rem" if label == "Sistem durumu" else "1.55rem"
+        dot = '<span class="status-dot"></span>' if label == "System status" else ""
+        size = "1.2rem" if label == "System status" else "1.55rem"
         st.markdown(f'<div class="metric-card"><div class="metric-label">{label}</div><div class="metric-value" style="font-size:{size}">{dot}{value}</div></div>', unsafe_allow_html=True)
 
-st.markdown('<div class="section-title">Belge kitaplığı</div><div class="section-copy">PDF, TXT veya Markdown ekleyin. Dosya başına en fazla 1 GB; sayfa sınırı yoktur.</div>', unsafe_allow_html=True)
-uploaded = st.file_uploader("Belgeleri buraya bırakın", type=["pdf", "txt", "md"], accept_multiple_files=True, label_visibility="collapsed")
+st.markdown('<div class="section-title">Document library</div><div class="section-copy">Add PDF, TXT, or Markdown files. Up to 1 GB per file, with no page limit.</div>', unsafe_allow_html=True)
+uploaded = st.file_uploader("Drop documents here", type=["pdf", "txt", "md"], accept_multiple_files=True, label_visibility="collapsed")
 col1, col2, _ = st.columns([1.25, 1.25, 2])
 with col1:
-    index_uploaded = st.button("Belgeleri hazırla", type="primary", use_container_width=True,
-                               key="prepare_documents", help="Seçtiğiniz belgeleri aranabilir hale getirir.")
+    index_uploaded = st.button("Prepare documents", type="primary", use_container_width=True,
+                               key="prepare_documents", help="Makes the selected documents searchable.")
 with col2:
-    scan_folder = st.button("Klasörü yeniden tara", use_container_width=True,
-                            key="scan_documents", help="documents klasöründeki dosyaları yeniden işler.")
+    scan_folder = st.button("Rescan folder", use_container_width=True,
+                            key="scan_documents", help="Reprocesses files in the documents folder.")
 
 if index_uploaded:
     if not uploaded:
-        st.warning("Önce yukarıdaki alandan en az bir belge seçin.")
+        st.warning("Select at least one document above first.")
     else:
         oversized = [file.name for file in uploaded if file.size > MAX_UPLOAD_BYTES]
         if oversized:
-            st.error("Şu dosyalar 1 GB sınırını aşıyor: " + ", ".join(oversized))
+            st.error("These files exceed the 1 GB limit: " + ", ".join(oversized))
         else:
             DOCUMENTS_DIR.mkdir(exist_ok=True)
             try:
-                progress, total = st.progress(0, text="Belgeler hazırlanıyor…"), 0
+                progress, total = st.progress(0, text="Preparing documents…"), 0
                 for index, file in enumerate(uploaded, start=1):
                     destination = DOCUMENTS_DIR / Path(file.name).name
-                    # getbuffer(), 1 GB dosyada ikinci bir tam bellek kopyası oluşmasını önler.
+                    # getbuffer() avoids a second full memory copy for a 1 GB file.
                     destination.write_bytes(file.getbuffer())
                     total += assistant.index_file(destination)
-                    progress.progress(index / len(uploaded), text=f"{destination.name} işlendi")
+                    progress.progress(index / len(uploaded), text=f"Processed {destination.name}")
                 st.session_state.flash_message = (
-                    "success", f"{len(uploaded)} belge hazır. Toplam {total} metin parçası oluşturuldu."
+                    "success", f"{len(uploaded)} documents ready. Created {total} text chunks."
                 )
                 st.rerun()
             except Exception as exc:
-                st.error(f"Belgeler hazırlanamadı: {exc}")
+                st.error(f"The documents could not be prepared: {exc}")
 
 if scan_folder:
     try:
         result = assistant.index_directory(DOCUMENTS_DIR)
         if result:
-            st.session_state.flash_message = ("success", f"{len(result)} belge yeniden hazırlandı.")
+            st.session_state.flash_message = ("success", f"Reprocessed {len(result)} documents.")
             st.rerun()
         else:
-            st.info("Klasörde henüz desteklenen bir belge bulunmuyor.")
+            st.info("No supported documents were found in the folder.")
     except Exception as exc:
-        st.error(f"Klasör taranamadı: {exc}")
+        st.error(f"The folder could not be scanned: {exc}")
 
 st.divider()
-st.markdown('<div class="section-title">Belgelere sorun</div><div class="section-copy">Özet isteyin, ayrıntı bulun veya bölümleri karşılaştırın.</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Ask your documents</div><div class="section-copy">Request a summary, find details, or compare sections.</div>', unsafe_allow_html=True)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if not st.session_state.messages:
-    st.info("Başlamak için bir belge hazırlayın. Örneğin: “Bu raporun üç temel sonucu nedir?”")
+    st.info('Prepare a document to begin. For example: “What are the three key findings in this report?”')
 for message in st.session_state.messages:
     avatar = "◼" if message["role"] == "assistant" else None
     with st.chat_message(message["role"], avatar=avatar):
         st.markdown(message["content"])
 
-if question := st.chat_input("Belgeniz hakkında bir soru yazın…", disabled=assistant.store.count == 0):
+if question := st.chat_input("Ask a question about your document…", disabled=assistant.store.count == 0):
     st.session_state.messages.append({"role": "user", "content": question})
     with st.chat_message("user"):
         st.markdown(question)
     with st.chat_message("assistant", avatar="◼"):
         try:
-            with st.spinner("İlgili sayfalar inceleniyor…"):
+            with st.spinner("Reviewing the relevant pages…"):
                 answer, sources = assistant.ask(question, top_k)
             st.markdown(answer)
             if sources:
-                with st.expander(f"Kaynakları incele · {len(sources)} bölüm"):
+                with st.expander(f"Review sources · {len(sources)} sections"):
                     for number, item in enumerate(sources, 1):
                         meta = item["metadata"]
-                        st.markdown(f"**{number}. {meta['source']} · Sayfa {meta['page']}**")
+                        st.markdown(f"**{number}. {meta['source']} · Page {meta['page']}**")
                         st.caption(item["text"])
                         if number < len(sources): st.divider()
             st.session_state.messages.append({"role": "assistant", "content": answer})
         except Exception as exc:
-            st.error(f"Şu anda yanıt oluşturulamadı. Yerel servisi kontrol edin: {exc}")
+            st.error(f"A response could not be generated. Check the local service: {exc}")

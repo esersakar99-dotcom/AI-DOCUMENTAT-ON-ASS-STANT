@@ -1,8 +1,8 @@
 import ollama
 
-SYSTEM_PROMPT = """Sen bir Türkçe doküman asistanısın. Yalnızca verilen BAĞLAM içindeki
-bilgilerle cevap ver. Bağlamda cevap yoksa bunu açıkça söyle; bilgi uydurma.
-Her önemli iddianın ardından [dosya, s.X] biçiminde kaynak göster. Kısa ve anlaşılır ol."""
+SYSTEM_PROMPT = """You are a document assistant. Answer only with information found in
+the provided CONTEXT. If the context does not contain the answer, say so clearly and do
+not invent information. Cite every important claim as [filename, p.X]. Be concise."""
 
 
 class OllamaLLM:
@@ -13,7 +13,7 @@ class OllamaLLM:
     def answer(self, question: str, context: str) -> str:
         response = self.client.chat(model=self.model, messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": f"BAĞLAM:\n{context}\n\nSORU:\n{question}"},
+            {"role": "user", "content": f"CONTEXT:\n{context}\n\nQUESTION:\n{question}"},
         ], options={
             "temperature": 0.1,
             "num_ctx": 4096,
