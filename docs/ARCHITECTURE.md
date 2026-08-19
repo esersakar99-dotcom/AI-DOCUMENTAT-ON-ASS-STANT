@@ -1,6 +1,6 @@
 # Architecture
 
-The application uses a small, explicit retrieval-augmented generation pipeline. It does not depend on a hosted model or orchestration framework.
+The application uses a small, explicit retrieval-augmented generation pipeline. Retrieval remains local; response generation can use Ollama, Gemini's limited free tier, or the credit-based OpenAI API without an orchestration framework.
 
 ## Indexing flow
 

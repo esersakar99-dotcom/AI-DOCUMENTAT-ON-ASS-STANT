@@ -1,6 +1,6 @@
 # Local Document RAG Assistant
 
-A privacy-first document assistant that runs entirely on your machine. It indexes PDF, TXT, and Markdown files with Ollama embeddings, stores vectors in ChromaDB, and produces page-cited answers with a local Llama model.
+A privacy-first document assistant that indexes PDF, TXT, and Markdown files with Ollama embeddings, stores vectors in ChromaDB, and produces page-cited answers with Ollama, OpenAI, Anthropic, or Gemini.
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
 ![Ollama](https://img.shields.io/badge/Ollama-local-111111)
@@ -35,7 +35,7 @@ Question -> semantic retrieval -> relevant context -> Llama -> cited answer
 | `src/embedder.py` | Ollama embedding client |
 | `src/vector_store.py` | Persistent indexing and similarity search |
 | `src/retriever.py` | Context assembly with source metadata |
-| `src/llm.py` | Grounded Llama response generation |
+| `src/llm.py` | Provider-independent grounded response generation |
 | `src/rag.py` | End-to-end RAG orchestration |
 
 ## Requirements
@@ -67,6 +67,17 @@ On Windows, the included scripts provide a shorter workflow:
 Open [http://localhost:8501](http://localhost:8501), upload a document, select **Prepare documents**, and ask a question.
 
 You can also copy files into `documents/` and use **Rescan folder**.
+
+## LLM providers
+
+The interface offers Ollama, Gemini, and OpenAI.
+Ollama is fully local and needs no API key. Gemini uses its limited free API tier; create a
+key in Google AI Studio from a project without billing enabled, then enter it in the password
+field or set `GEMINI_API_KEY` in `.env`. When the free quota is exhausted, the app reports the
+limit and does not switch to a paid provider. OpenAI can be configured with `OPENAI_API_KEY`,
+but API usage may require purchased or promotional credits and is separate from a ChatGPT
+subscription. Retrieval and embeddings continue to run locally; only the retrieved excerpts
+and question are sent to the selected hosted provider.
 
 ## VRAM profile
 
