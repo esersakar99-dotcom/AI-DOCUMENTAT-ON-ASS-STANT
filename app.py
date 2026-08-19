@@ -3,6 +3,7 @@ from pathlib import Path
 import streamlit as st
 from dotenv import load_dotenv
 from src.rag import RAGAssistant
+from src.llm import DEFAULT_MODELS, UI_PROVIDERS
 from src.version import __version__
 
 load_dotenv()
@@ -46,21 +47,47 @@ with st.sidebar:
     st.markdown("### Workspace")
     st.caption("Prepare your documents, then start a conversation.")
     st.divider()
-    chat_model = st.text_input("Response model", os.getenv("CHAT_MODEL", "llama3.2:3b"))
+    configured_provider = os.getenv("LLM_PROVIDER", "ollama").lower()
+    provider_index = next((i for i, name in enumerate(UI_PROVIDERS)
+                           if name.lower() == configured_provider), 0)
+    provider = st.selectbox("LLM provider", UI_PROVIDERS, index=provider_index,
+                            help="Ollama is local, Gemini has a free tier, and OpenAI uses API credits.")
+    provider_key = provider.lower()
+    configured_model = os.getenv(f"{provider_key.upper()}_MODEL")
+    if not configured_model and provider_key == configured_provider:
+        configured_model = os.getenv("CHAT_MODEL")
+    chat_model = st.text_input("Response model", configured_model or DEFAULT_MODELS[provider_key],
+                               key=f"chat_model_{provider_key}")
+    api_key = ""
+    base_url = ""
+    if provider_key != "ollama":
+        api_key = st.text_input("API key", value=os.getenv(f"{provider_key.upper()}_API_KEY",
+                                os.getenv("LLM_API_KEY", "")), type="password")
+        base_url = st.text_input("API base URL (optional)", os.getenv("LLM_BASE_URL", ""))
+        if provider_key == "gemini":
+            st.caption("Use an API key from a Gemini AI Studio project without billing enabled. "
+                       "When its free quota is exhausted, requests stop instead of falling back to a paid provider.")
+        else:
+            st.warning("OpenAI API usage is billed separately from ChatGPT subscriptions. "
+                       "The app only uses credits already available on your API account.")
     embedding_model = st.text_input("Embedding model", os.getenv("EMBEDDING_MODEL", "nomic-embed-text"))
     ollama_host = st.text_input("Local service", os.getenv("OLLAMA_HOST", "http://localhost:11434"))
-    default_top_k = max(2, min(10, int(os.getenv("RAG_TOP_K", "5"))))
-    top_k = st.slider("Search depth", 2, 10, default_top_k, help="Number of relevant text chunks reviewed for each question.")
+    default_top_k = max(2, min(10, int(os.getenv("RAG_TOP_K", "8"))))
+    top_k = st.slider("Search depth", 2, 10, default_top_k,
+                      help="All documents are searched semantically and by keyword; the most relevant sections are added to the answer.")
     st.divider()
-    st.markdown('<div class="privacy"><span class="status-dot"></span>Local and private<br><br>Your documents never leave this computer.</div>', unsafe_allow_html=True)
+    privacy_text = ("Local and private<br><br>Your documents never leave this computer."
+                    if provider_key == "ollama" else
+                    f"Local retrieval<br><br>Relevant document excerpts are sent to {provider} to generate an answer.")
+    st.markdown(f'<div class="privacy"><span class="status-dot"></span>{privacy_text}</div>', unsafe_allow_html=True)
     st.caption(f"Version {__version__}")
 
 @st.cache_resource
-def get_assistant(chat, embedding, host):
-    return RAGAssistant(DATABASE_DIR, chat, embedding, host)
+def get_assistant(chat, embedding, host, provider_name, key, api_base):
+    return RAGAssistant(DATABASE_DIR, chat, embedding, host, provider_name, key, api_base or None)
 
 try:
-    assistant = get_assistant(chat_model, embedding_model, ollama_host)
+    assistant = get_assistant(chat_model, embedding_model, ollama_host, provider, api_key, base_url)
 except Exception as exc:
     st.error(f"The workspace could not be opened: {exc}")
     st.stop()
@@ -155,4 +182,4 @@ if question := st.chat_input("Ask a question about your document…", disabled=a
                         if number < len(sources): st.divider()
             st.session_state.messages.append({"role": "assistant", "content": answer})
         except Exception as exc:
-            st.error(f"A response could not be generated. Check the local service: {exc}")
+            st.error(f"A response could not be generated. Check the selected provider settings: {exc}")
