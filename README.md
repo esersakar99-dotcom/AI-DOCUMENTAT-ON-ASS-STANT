@@ -6,6 +6,8 @@ A privacy-first document assistant that runs entirely on your machine. It indexe
 ![Ollama](https://img.shields.io/badge/Ollama-local-111111)
 ![Version](https://img.shields.io/badge/version-1.1.0-31835e)
 
+![Local Document RAG Assistant interface](assets/app-preview.png)
+
 ## Features
 
 - Fully local inference; documents are not sent to a cloud service
