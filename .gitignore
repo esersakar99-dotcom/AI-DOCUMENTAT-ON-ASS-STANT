@@ -9,3 +9,4 @@ documents/*
 !.streamlit/config.toml
 *.stdout.log
 *.stderr.log
+.env

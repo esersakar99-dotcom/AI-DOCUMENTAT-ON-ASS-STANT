@@ -1,9 +1,14 @@
+import os
 from pathlib import Path
 import streamlit as st
+from dotenv import load_dotenv
 from src.rag import RAGAssistant
 from src.version import __version__
 
-DOCUMENTS_DIR, DATABASE_DIR = Path("documents"), Path("database")
+load_dotenv()
+
+DOCUMENTS_DIR = Path(os.getenv("RAG_DOCUMENTS_DIR", "documents"))
+DATABASE_DIR = Path(os.getenv("RAG_DATABASE_DIR", "database"))
 MAX_UPLOAD_BYTES = 1024 * 1024 * 1024  # 1 GB
 st.set_page_config(page_title="Archive — Document Assistant", page_icon="◼", layout="wide")
 st.markdown("""
@@ -41,10 +46,11 @@ with st.sidebar:
     st.markdown("### Workspace")
     st.caption("Prepare your documents, then start a conversation.")
     st.divider()
-    chat_model = st.text_input("Response model", "llama3.2:3b")
-    embedding_model = st.text_input("Embedding model", "nomic-embed-text")
-    ollama_host = st.text_input("Local service", "http://localhost:11434")
-    top_k = st.slider("Search depth", 2, 10, 5, help="Number of relevant text chunks reviewed for each question.")
+    chat_model = st.text_input("Response model", os.getenv("CHAT_MODEL", "llama3.2:3b"))
+    embedding_model = st.text_input("Embedding model", os.getenv("EMBEDDING_MODEL", "nomic-embed-text"))
+    ollama_host = st.text_input("Local service", os.getenv("OLLAMA_HOST", "http://localhost:11434"))
+    default_top_k = max(2, min(10, int(os.getenv("RAG_TOP_K", "5"))))
+    top_k = st.slider("Search depth", 2, 10, default_top_k, help="Number of relevant text chunks reviewed for each question.")
     st.divider()
     st.markdown('<div class="privacy"><span class="status-dot"></span>Local and private<br><br>Your documents never leave this computer.</div>', unsafe_allow_html=True)
     st.caption(f"Version {__version__}")
